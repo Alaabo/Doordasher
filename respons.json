@@ -1,0 +1,21 @@
+{
+    "$collectionId": "requests",
+    "$createdAt": "2025-03-23T04:37:53.589+00:00",
+    "$databaseId": "67da4a470006d1086dce",
+    "$id": "67df9020002e707020c7",
+    "$permissions": [
+        "read(\"user:67de7719216738243436\")",
+        "update(\"user:67de7719216738243436\")",
+        "delete(\"user:67de7719216738243436\")"
+    ],
+    "$updatedAt": "2025-03-23T04:37:53.589+00:00",
+    "destinyLan": 34.784971082841935,
+    "destinyLon": 8.11219833791256,
+    "driverId": null,
+    "packageDetails": "Chicha",
+    "pickUpLan": 34.76595,
+    "pickUpLon": 8.0486502,
+    "price": 2500,
+    "status": "pending",
+    "user": "67de7719216738243436"
+}
