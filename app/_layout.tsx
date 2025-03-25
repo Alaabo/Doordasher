@@ -32,7 +32,15 @@ export default function RootLayout() {
     <LocationProvider>
       <AuthProvider>
     <I18nextProvider i18n={i18n}>
-      <Stack screenOptions={{ headerShown : false}}/>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(root)" />
+        <Stack.Screen name="request/[id]" />
+        <Stack.Screen name="index" />
+        <Stack.Screen name="noLocationError" />
+        <Stack.Screen name="phoneNumber" />
+        <Stack.Screen name="RequestHistory" />
+        <Stack.Screen name="TransactionHistory" />
+      </Stack>
     </I18nextProvider>
       </AuthProvider>
     </LocationProvider>

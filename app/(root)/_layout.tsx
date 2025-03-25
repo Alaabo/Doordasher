@@ -6,10 +6,11 @@ import '../globals.css'
 import { Image, ImageSourcePropType } from "react-native";
 import { images } from '@/constants'
 import { useAuthContext } from '@/lib/authContext'
-import { t } from 'i18next'
+import i18next, { t } from 'i18next'
 const rootLayout = () => {
   // const { loading , isLogged} = 
   const { isLogged , authLoading} = useAuthContext()
+   
   const TabIcon = ({
     focused,
     icon,
@@ -33,7 +34,7 @@ const rootLayout = () => {
             : "text-black-200 font-rubik"
         } text-xs w-full text-center mt-1`}
       >
-        {title}
+        {t(title)}
       </Text>
     </View>
   );
@@ -63,7 +64,7 @@ const rootLayout = () => {
       <Tabs.Screen
      name="profile"
      options={{
-       title: "Profile",
+       
        headerShown: false,
        tabBarIcon: ({ focused }) => (
          <TabIcon focused={focused} icon={images.user} title={t("Profile")} />
@@ -73,17 +74,17 @@ const rootLayout = () => {
          <Tabs.Screen
         name="home"
         options={{
-          title: "Home",
+         
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={images.home}title={t("home")} />
+            <TabIcon focused={focused} icon={images.home}title={t("Home")} />
           ),
         }}
       />
          <Tabs.Screen
         name="activity"
         options={{
-          title: "Delivery",
+          
           headerShown: false,
           tabBarIcon: ({ focused }) => (
             <TabIcon focused={focused} icon={images.delivery} title={t('Deliver')} />

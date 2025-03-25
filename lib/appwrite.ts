@@ -1,8 +1,13 @@
 import {Account, AppwriteException, Avatars, Client, Databases, ID, OAuthProvider, Query } from "react-native-appwrite"
-import * as linking from "expo-linking"
+
+
 import { openAuthSessionAsync } from "expo-web-browser";
-import { router } from "expo-router";
+
 import { DBUser, RequestType, Transaction } from "@/types/globals";
+
+
+import { makeRedirectUri } from 'expo-auth-session'
+import { Linking } from "react-native";
 
 
 
@@ -21,7 +26,11 @@ export const client = new Client()
 client
         .setEndpoint(config.endpoint!)
         .setProject(config.projectd!)
-        .setPlatform(config.Platform!)
+        .setPlatform('com.alaabo.doordasher')
+
+        
+
+
 
 export const avatar = new Avatars(client);
 export const account = new Account(client);
@@ -29,16 +38,24 @@ export const databases = new Databases(client);
 
 export async function login() {
   try {
-    const redirectUri = linking.createURL('/')
+    let redirectScheme = makeRedirectUri();
+
+    // HACK: localhost is a hack to get the redirection possible
+    if (!redirectScheme.includes('localhost')) {
+      redirectScheme = `${redirectScheme}localhost`;
+    }
+    console.log(redirectScheme)
+   
+
     const response = await account.createOAuth2Token(
       OAuthProvider.Google,
-      redirectUri
+      redirectScheme
     );
     if (!response) throw new Error("Create OAuth2 token failed");
 
     const browserResult = await openAuthSessionAsync(
-      response.toString(),
-      redirectUri
+      response.href,
+      redirectScheme
     );
     if (browserResult.type !== "success")
       throw new Error("Create OAuth2 token failed");
@@ -47,17 +64,15 @@ export async function login() {
     const secret = url.searchParams.get("secret")?.toString();
     const userId = url.searchParams.get("userId")?.toString();
     if (!secret || !userId) throw new Error("Create OAuth2 token failed");
-    
-    // Create the session for the authenticated user
-    // This is needed regardless if they're new or existing
+
     const session = await account.createSession(userId, secret);
     if (!session) throw new Error("Failed to create session");
     
-    return true
+    return {succes : true}
     
   } catch (error) {
     console.log(error)
-    return false;
+    return {succes : false};
   }
 }
 export async function logoutCurrentUser() {
@@ -74,27 +89,39 @@ export async function logoutCurrentUser() {
   export async function ChekAuthState() {
     try {
       const currentAccount = await account.get();
-            
-      if (currentAccount && currentAccount.$id) {
-          // User is logged in, fetch additional user data
+      if( currentAccount){
+        
+        const userDetails = await readUser(currentAccount.$id);
+        if(!userDetails){
+          return {
+                    $id : currentAccount.$id ,
+                    email : currentAccount.email,
+                    name : currentAccount.name ,
+                    avatar: avatar.getInitials(currentAccount.name).toString(),
+                    role : 'client',
+                    phone : '',
+                    new : true
+                   }
+        }else{
+          return { ...userDetails , new : false}
+        }
+      }
+      // if (currentAccount && currentAccount.$id) {
+      //   // User is logged in, fetch additional user data
           
-          const userDetails = await readUser(currentAccount.$id);
-          
-          if (userDetails) {
+      //     try {
+      //       const userDetails = await readUser(currentAccount.$id);
+      //       if (userDetails) {
 
-              return { ...userDetails , new : false}
-          }else {
-            return {
-             $id : currentAccount.$id ,
-             email : currentAccount.email,
-             name : currentAccount.name ,
-             avatar: avatar.getInitials(currentAccount.name).toString(),
-             role : 'client',
-             phone : '',
-             new : true
-            }
-         }
-        } 
+      //         return { ...userDetails , new : false}
+      //     }
+      //     } catch (error) {
+      //       
+      //     }
+          
+          
+          
+      //   } 
       return null
   } catch (error) {
 
@@ -267,8 +294,8 @@ export const payTransaction = async (requestId : string)=>{
     const transactionResult = await databases.listDocuments(config.databseId! , 'transactions' ,[
       Query.equal( 'request' , requestId)
     ])
-    console.log(transactionResult.documents[0].$id!)
-    // await databases.updateDocument(config.databseId! , 'transactions' , transactionResult.documents[0].$id! , {status : 'completed'})
+  
+    await databases.updateDocument(config.databseId! , 'transactions' , transactionResult.documents[0].$id! , {status : 'completed'})
   } catch (error) {
     console.log(error)
   }

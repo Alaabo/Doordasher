@@ -39,6 +39,8 @@ export const AuthProvider = ({ children }: AuthProviderProps ) => {
             setAuthLoading(true);
             setAuthErrors(null);
             const checkForAuth = await ChekAuthState();
+            
+            
             if(!checkForAuth){
                 setUserData(null),
                 setAuthErrors('No User Logged In')
