@@ -7,6 +7,7 @@ import { I18nextProvider } from "react-i18next";
 import i18n from "@/utils/i18n";
 import { LocationProvider } from "@/lib/locationContxt";
 import { AuthProvider } from "@/lib/authContext";
+import { StatusBar } from "react-native";
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     "Poppins-Black": require("../assets/fonts/Poppins-Black.ttf"),
@@ -41,6 +42,7 @@ export default function RootLayout() {
         <Stack.Screen name="RequestHistory" />
         <Stack.Screen name="TransactionHistory" />
       </Stack>
+      <StatusBar  hidden={true}/>
     </I18nextProvider>
       </AuthProvider>
     </LocationProvider>

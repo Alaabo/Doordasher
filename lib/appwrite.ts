@@ -7,7 +7,7 @@ import { DBUser, RequestType, Transaction } from "@/types/globals";
 
 
 import { makeRedirectUri } from 'expo-auth-session'
-import { Linking } from "react-native";
+
 
 
 

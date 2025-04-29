@@ -46,7 +46,9 @@ import onroad from '../assets/images/onRode.png'
 import accepted from '../assets/images/accepted.png'
 import pending from '../assets/images/pending.png'
 import target from '../assets/icons/target.png'
+import onBoarding from '../assets/images/onBoarding.jpg'
 const images ={
+    onBoarding : onBoarding ,
     target : target ,
     delivered : delivered ,
     onroad : onroad ,

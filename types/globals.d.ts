@@ -30,3 +30,21 @@ export type Transaction = {
     user : string
     status : 'pending' | "completed" | "failed"
 }
+
+export type Businesses = {
+    $id : string ,
+    name : string ,
+    lat : number ,
+    lon : number ,
+    menuproducts : [string] ,
+    email : string ,
+    phoneNumber : string
+}
+
+export type Menu ={
+    $id : string ,
+    name : string ,
+    description : string ,
+    price : number ,
+    coverpic : string
+}

@@ -409,15 +409,7 @@ const CreateRequestScreen = () => {
               />
             </View>
             
-            <TouchableOpacity 
-              style={styles.closeModalButton} 
-              onPress={() => setModalVisible(false)}
-            >
-              <Image 
-                source={images.rightArrow} 
-                style={[styles.closeIcon, isRTL && styles.rtlIcon]} 
-              />
-            </TouchableOpacity>
+          
           </View>
 
           {places && places.length > 0 && (

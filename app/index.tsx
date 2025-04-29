@@ -2,12 +2,13 @@ import { images } from "@/constants";
 import { account, login } from "@/lib/appwrite";
 import { Redirect, router } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Alert, Image, Text, TouchableOpacity, View, I18nManager } from "react-native";
+import { ActivityIndicator, Alert, Image, Text, TouchableOpacity, View, I18nManager, ImageBackground, Dimensions, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useMemo, useState } from "react";
 import { useAuthContext } from "@/lib/authContext";
 import { useLocationContext } from "@/lib/locationContxt";
 import * as Linking from 'expo-linking'
+import { LinearGradient } from "expo-linear-gradient";
 export default function Index() {
   const { t, i18n } = useTranslation();
   const { isLogged, authLoading, authErrors, reload } = useAuthContext();
@@ -15,6 +16,7 @@ export default function Index() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const isRTL = i18n.language === 'ar' || I18nManager.isRTL;
   const url = Linking.useURL()
+  const {width , height} = Dimensions.get('screen')
   
  //@ts-ignore
 
@@ -33,42 +35,48 @@ export default function Index() {
     );
   }
 
-  // Handle login logic
-  const handleLogin = async () => {
-    try {
-      setIsLoggingIn(true);
-      
-      const results = await login();
-      
-      if (results.succes) {
-        reload();
-      } else {
-        Alert.alert('Error', 'Failed to login');
-        console.log(authErrors);
+    // Handle login logic
+    const handleLogin = async () => {
+      try {
+        setIsLoggingIn(true);
+        
+        const results = await login();
+        
+        if (results.succes) {
+          reload();
+        } else {
+          Alert.alert('Error', 'Failed to login');
+          console.log(authErrors);
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        Alert.alert('Error', `Login failed: ${errorMessage}`);
+      } finally {
+        setIsLoggingIn(false);
       }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      Alert.alert('Error', `Login failed: ${errorMessage}`);
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
+    };
 
   return (
-    <SafeAreaView className="bg-white flex-1 justify-around items-center px-4">
+   <>
+    <ImageBackground source={images.onBoarding} style={{width : width , height : height}}>
+    <LinearGradient
+        colors={["rgba(0, 0, 0, 0.2)", "rgba(34, 150, 94, 0.9)"]} // Green gradient
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.overlay}
+      />
+    <SafeAreaView className=" flex-1 justify-around items-center px-4">
       <View className="items-center">
         <Image className="w-20 h-20" source={images.logo} />
-        <Text className={`text-5xl font-Poppins-Black text-primary-200 text-center ${isRTL ? 'text-right' : 'text-left'}`}>
+        <Text className={`my-5 text-7xl font-Poppins-Black text-primary-100 text-center ${isRTL ? 'text-right' : 'text-left'}`}>
           {t('app_name')}
         </Text>
       </View>
       
-      <Text className={`text-primary-300 font-Poppins-bold text-xl text-center mb-28 ${isRTL ? 'text-right' : 'text-left'}`}>
-        {t('slogan')}
-      </Text>
+    
       
       <TouchableOpacity 
-        className="items-center bg-primary-200 rounded-lg p-4 w-full "
+        className="items-center bg-primary-100 rounded-lg p-4 w-full "
         style={{ flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'center' }}
         onPress={handleLogin}
         disabled={isLoggingIn}
@@ -78,7 +86,7 @@ export default function Index() {
         ) : (
           <>
             <Image source={images.google} className="w-8 h-8" />
-            <Text className={`text-2xl text-primary-100 font-Poppins-medium px-2 ${isRTL ? 'text-right' : 'text-left'}`}>
+            <Text className={`text-2xl text-primary-300 font-Poppins-medium px-2 ${isRTL ? 'text-right' : 'text-left'}`}>
               {t('loginWithGoogle')}
             </Text>
             <Image 
@@ -89,9 +97,29 @@ export default function Index() {
           </>
         )}
       </TouchableOpacity>
+      <Text className={`text-primary-100 font-Poppins-bold text-xl text-center mb-28 ${isRTL ? 'text-right' : 'text-left'}`}>
+        {t('slogan')}
+      </Text>
     </SafeAreaView>
+    </ImageBackground>
+   </>
   );
 }
+
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject, // Covers the entire background
+  },
+  content: {
+    position: "absolute", // Ensures content is above the gradient
+  },
+});
+
 
 
 // import { images } from "@/constants";
