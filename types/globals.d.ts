@@ -19,6 +19,8 @@ export type RequestType = {
     packageDetails : string ,
     price : number ,
     user : string ,
+    storeID? : string ,
+    productID? : string
 }
 
 export type Transaction = {
@@ -39,6 +41,17 @@ export type Businesses = {
     menuproducts : [string] ,
     email : string ,
     phoneNumber : string
+}
+
+export type ProductType ={
+    $id : string ,
+    name : string ,
+    description : string ,
+    price : number ,
+    coverpic : string,
+    storeID? : string ,
+    lat : number ,
+    lon : number
 }
 
 export type Menu ={

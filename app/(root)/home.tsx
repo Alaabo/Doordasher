@@ -1,35 +1,39 @@
 import { View, Text, TouchableOpacity, Image, Dimensions, FlatList, I18nManager, Alert } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { getCompletedTransactions, getReqComplete } from '@/lib/appwrite'
-import { Href, Redirect, router, usePathname } from 'expo-router'
+import { getNearbyBusinesses, getReqComplete } from '@/lib/appwrite'
 import { images } from '@/constants'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useTranslation } from 'react-i18next'
-import { RequestType, Transaction } from '@/types/globals'
+import {  ProductType, RequestType } from '@/types/globals'
 import NoResults from '@/components/NoResults'
 import RequestsCard from '@/components/RequestsCard'
 import { useAuthContext } from '@/lib/authContext'
-import TransactionCard from '@/components/TransactionCard'
 import i18next, { t } from 'i18next'
+import BusinessesCard from '@/components/BusinessesCard'
+
+import { router, usePathname } from 'expo-router'
+import { useLocationContext } from '@/lib/locationContxt'
 
 const Home = () => {
 
   const pathname = usePathname();
-  const { logout, userData } = useAuthContext()
-  const { width, height } = Dimensions.get('screen')
-  
+  const { width , height } = Dimensions.get('screen')
+  const {userData , logout} = useAuthContext()
   const [req, setreq] = useState<RequestType[]>([])
-  const [transactions, settransactions] = useState<Transaction[]>([])
+  const {location} = useLocationContext()
+  const [businesses, setbusinesses] = useState<ProductType[] | null>(null)
   const [isRTL , setIsRTL] = useState(false);
   useEffect(() => {
     const fetch = async () => {
       const results = await getReqComplete(userData?.$id!)
-      const transac = await getCompletedTransactions(userData?.$id!)
+      const business = await getNearbyBusinesses(location)
+      
+      
+      
       if(results){
         setreq(results as unknown as RequestType[])
       }
-      if(transac){
-         settransactions(transac as unknown as Transaction[])}
+      if(business){
+         setbusinesses(business)}
     }
     const currentLanguage = i18next.language;
       
@@ -144,9 +148,9 @@ const Home = () => {
         </View>
       }
     
-      <Text className='text-xl font-Poppins-semibold text-center'>{t('transactionsComp')}</Text>
+      <Text className='text-xl font-Poppins-semibold text-center'>{t('NearbyProducts')}</Text>
       
-      {transactions.length == 0 ? <View><NoResults /></View> : 
+      {!businesses ? <View><NoResults /></View> : 
         <View>
           <FlatList
             style={{width: "100%"}}
@@ -154,16 +158,16 @@ const Home = () => {
             contentContainerClassName=""
             horizontal={true}
             inverted={isRTL} // Invert scroll direction for RTL
-            data={transactions}
+            data={businesses}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => (
-              <View style={{ width: width }} className='p-2 flex items-center justify-center'> 
-                <TransactionCard transaction={item as unknown as Transaction} onPress={() => {handleRedirect(item.request)}} />
+              <View style={{ width: width }} className='p-2 flex items-center justify-center '> 
+                <BusinessesCard business={item} />
               </View>
             )}
             ListFooterComponent={
               <TouchableOpacity 
-                onPress={()=>router.push('/TransactionHistory')} 
+                onPress={()=>router.push('/(root)/activity')} 
                 style={{
                   backgroundColor: '#FFFFFF',
                   borderRadius: 8,
@@ -177,7 +181,7 @@ const Home = () => {
                   elevation: 2,
                 }} 
                 className='p-2 flex-row items-center justify-center'>    
-                <Text className='text-2xl font-Poppins-semibold mt-2 text-center'>{t('TransactionsHistory')}</Text>
+                <Text className='text-2xl font-Poppins-semibold mt-2 text-center'>{t('PickFromCart')}</Text>
                 <Image 
                   source={images.backArrow} 
                   style={{ 
@@ -188,22 +192,12 @@ const Home = () => {
                 />
               </TouchableOpacity>
             }
+            
           />
         </View>
-      }
+      } 
       
-      <TouchableOpacity 
-        style={{
-          backgroundColor: "#000B2B", 
-          padding: 20, 
-          position: 'absolute', 
-          bottom: 100, 
-          left: 10, 
-          right: 10
-        }} 
-        onPress={()=>router.push('/(root)/activity')}>
-        <Text className='text-primary-100 font-Poppins-medium text-center text-xl'>{t('CreateRequestNow')}</Text>
-      </TouchableOpacity>
+      
     </SafeAreaView>
   )
 }

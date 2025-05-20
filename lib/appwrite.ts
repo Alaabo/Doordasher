@@ -3,21 +3,20 @@ import {Account, AppwriteException, Avatars, Client, Databases, ID, OAuthProvide
 
 import { openAuthSessionAsync } from "expo-web-browser";
 
-import { DBUser, RequestType, Transaction } from "@/types/globals";
+import { Businesses, DBUser, ProductType, RequestType, Transaction } from "@/types/globals";
 
 
 import { makeRedirectUri } from 'expo-auth-session'
-
-
+import { LocationProps } from "@/app/(root)/activity";
 
 
 
 
 export const config = {
     Platform : 'com.alaabo.doordasher',
-    endpoint : process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT,
-    projectd : process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID ,
-    databseId : process.env.EXPO_PUBLIC_APPWRITE_DATABASEID
+    endpoint : process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT || "https://cloud.appwrite.io/v1",
+    projectd : process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID || "doordasher",
+    databseId : process.env.EXPO_PUBLIC_APPWRITE_DATABASEID || "67da4a470006d1086dce"
 }
 
 
@@ -173,6 +172,124 @@ export const readUser = async (id : string ) =>{
         return error
       }
 }
+
+
+export const readBusiness = async (id : string ) : Promise<Businesses | null> =>{
+  try {
+    const user = await databases.getDocument(config.databseId! , "businesses" , id)
+    
+    if(!user) return null
+
+    return user as unknown as Businesses
+  } catch (error : any) {
+    console.log(error)
+    if (error.code === 404 ) return null
+    return error
+  }
+}
+
+export const getNearbyBusinesses = async (location: LocationProps): Promise<ProductType[] | null> => {
+  try {
+    const R = 6371; // Earth radius in km
+    const latDelta = 10 / R * (180 / Math.PI);
+    const lngDelta = 10 / (R * Math.cos((location.latitude * Math.PI) / 180)) * (180 / Math.PI);
+
+    const minLat = location.latitude - latDelta;
+    const maxLat = location.latitude + latDelta;
+    const minLng = location.longitude - lngDelta;
+    const maxLng = location.longitude + lngDelta;
+
+    const businesses = await databases.listDocuments(
+      config.databseId,
+      "businesses",
+      [
+        Query.between("lat", minLat, maxLat),
+        Query.between("lon", minLng, maxLng),
+      ]
+    );
+
+    if (!businesses || businesses.documents.length === 0) return [];
+
+    const productResults = await Promise.all(
+      businesses.documents.map(async (business) => {
+        const data = await getProducts(business.$id);
+        if (!data) return [];
+
+        // Attach lat/lon to each product
+        const enrichedProducts = data.map((product) => (
+          {
+          ...product,
+          lat: business.lat,
+          lon: business.lon,
+          }
+
+        
+        
+      ));
+        
+        
+        return enrichedProducts;
+      })
+    );
+
+    const allProducts = productResults.flat();
+    
+    
+    return allProducts;
+  } catch (error) {
+    console.error("Error in getNearbyBusinesses:", error);
+    return null;
+  }
+};
+
+
+
+export const getProducts = async (id: string): Promise<ProductType[] | null> => {
+  try {
+    const result = await databases.listDocuments(
+      config.databseId!,
+      "products",
+      [
+        Query.equal("storeID", id),
+        Query.limit(3),
+      ]
+    );
+
+    if (result.total === 0) return null;
+
+    return result.documents as unknown as ProductType[];
+  } catch (error) {
+    console.error("Error in getProducts:", error);
+    return null;
+  }
+};
+
+
+
+export const fetchProductDetails = async (id: string): Promise<ProductType | null> => {
+  try {
+    const request = await databases.getDocument(config.databseId!, "products", id);
+    if (!request) return null;
+    //@ts-ignore
+    return request;
+  } catch (error: any) {
+    console.log(error);
+    if (error.message?.includes("could not be found")) return null;
+    return null;
+  }
+};
+
+export const deleteProduct = async (id: string): Promise<void> => {
+  try {
+    await databases.deleteDocument(config.databseId! , "products" ,id)
+  } catch (error) {
+    console.log(error)
+ }
+};
+
+
+
+
 
 export const createReq = async (req : Partial<RequestType>) : Promise<RequestType | Error> =>{
   try {

@@ -1,13 +1,15 @@
+import { ImageBackgroundBase } from "react-native";
+
 //@ts-ignore
 export default ({ config }) => ({
   expo: {
-    name: "doordasher",
-    slug: "doordasher",
+    name: "Jawad Delivery",
+    slug: "jawaddelivery",
     owner: "alaabourega",
-    version: "1.0.0",
+    version: "2.0.0",
     orientation: "portrait",
     icon: "./assets/images/logo.png",
-    scheme: "doordasher",
+    scheme: "jawaddelivery",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
     developmentClient: {
@@ -15,7 +17,7 @@ export default ({ config }) => ({
     },
     extra: {
       eas: {
-        projectId: "12c616d0-28b0-4a51-8d64-81d97861ff8b"
+        projectId: "dce1c8fa-8c58-47ea-8cd1-2c60e8eca4da"
       },
       cli: {
         appVersionSource: "remote" // This addresses the first warning
@@ -28,12 +30,13 @@ export default ({ config }) => ({
       },
     },
     android: {
-      package: "com.Alaabo.doordasher", // This MUST be unique
+      package: "com.Alaabo.jawaddelivery", // This MUST be unique
       versionCode: 1,
       adaptiveIcon: {
         foregroundImage: "./assets/images/logo.png",
-        backgroundColor: "#B5C8FF",
+        backgroundColor: "#ffffff",
         googleServicesFile: false,
+        
       },
       config: {
         googleMaps: {
@@ -44,7 +47,7 @@ export default ({ config }) => ({
       intentFilters:[
         {
           action : "VIEW",
-          data : [{scheme : "doordasher"}],
+          data : [{scheme : "jawaddelivery"}],
           category : ["BROWSABLE" , "DEFAULT"]
         }
       ]
