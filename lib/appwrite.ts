@@ -9,12 +9,12 @@ import { Businesses, DBUser, ProductType, RequestType, Transaction } from "@/typ
 import { makeRedirectUri } from 'expo-auth-session'
 import { LocationProps } from "@/app/(root)/activity";
 import Constants from 'expo-constants';
-
+import * as WebBrowser from 'expo-web-browser';
 
 
 export const config = {
     Platform : 'com.alaabo.doordasher',
-    endpoint : process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT || "https://cloud.appwrite.io/v1",
+    endpoint : process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT || "https://fra.cloud.appwrite.io/v1",
     projectd : process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID || "doordasher",
     databseId : process.env.EXPO_PUBLIC_APPWRITE_DATABASEID || "67da4a470006d1086dce"
 }
@@ -37,32 +37,57 @@ export const databases = new Databases(client);
 
 export async function login() {
   try {
-    let redirectScheme = makeRedirectUri();
+    // let redirectScheme = makeRedirectUri();
 
-    // HACK: localhost is a hack to get the redirection possible
-    if (!redirectScheme.includes('localhost')) {
-      redirectScheme = `${redirectScheme}://localhost`;
-    }
-    console.log(redirectScheme)
+    // // HACK: localhost is a hack to get the redirection possible
+    // if (!redirectScheme.includes('localhost')) {
+    //   redirectScheme = `${redirectScheme}://localhost`;
+    // }
+    // console.log(redirectScheme)
+
+    const deepLink = new URL(makeRedirectUri({preferLocalhost: true}));
+// if (!deepLink.hostname) {
+//     deepLink.hostname = 'localhost';
+// }
+const scheme = `${deepLink.protocol}//`; // e.g. 'exp://' or 'playground://'
+console.log(scheme);
+console.log('----------------------------------------------------------------------------------------------------------------');
+
+
+const loginUrl = await account.createOAuth2Token(
+    OAuthProvider.Google,
+    `${deepLink}`,
+    `${deepLink}`,
+);
+
+console.log(loginUrl);
+
+
+if (!loginUrl) throw new Error("Create OAuth2 token failed");
+
+const result = await WebBrowser.openAuthSessionAsync(`${loginUrl}`, scheme);
+
+if (result.type !== "success")
+  throw new Error("Create OAuth2 token failed");
+// Extract credentials from OAuth redirect URL
+const url = new URL(result.url);
+const secret = url.searchParams.get('secret');
+const userId = url.searchParams.get('userId');
+
+if (!secret || !userId) throw new Error("Create OAuth2 token failed");
+// Create session with OAuth credentials
+// await account.createSession(userId!, secret!);
    
 
-    const response = await account.createOAuth2Token(
-      OAuthProvider.Google,
-      redirectScheme
-    );
-    if (!response) throw new Error("Create OAuth2 token failed");
 
-    const browserResult = await openAuthSessionAsync(
-      response.href,
-      redirectScheme
-    );
-    if (browserResult.type !== "success")
-      throw new Error("Create OAuth2 token failed");
+    // const browserResult = await openAuthSessionAsync(
+    //   response.href,
+    //   redirectScheme
+    // );
 
-    const url = new URL(browserResult.url);
-    const secret = url.searchParams.get("secret")?.toString();
-    const userId = url.searchParams.get("userId")?.toString();
-    if (!secret || !userId) throw new Error("Create OAuth2 token failed");
+    // const url = new URL(browserResult.url);
+    // const secret = url.searchParams.get("secret")?.toString();
+    // const userId = url.searchParams.get("userId")?.toString();
 
     const session = await account.createSession(userId, secret);
     if (!session) throw new Error("Failed to create session");
