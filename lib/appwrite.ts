@@ -5,8 +5,8 @@ import { openAuthSessionAsync } from "expo-web-browser";
 
 import { Businesses, DBUser, ProductType, RequestType, Transaction } from "@/types/globals";
 
-
-import { makeRedirectUri } from 'expo-auth-session'
+import * as AuthSession from "expo-auth-session";
+import * as Linking from "expo-linking";
 import { LocationProps } from "@/app/(root)/activity";
 import Constants from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
@@ -35,68 +35,51 @@ export const avatar = new Avatars(client);
 export const account = new Account(client);
 export const databases = new Databases(client);
 
+WebBrowser.maybeCompleteAuthSession(); // required for iOS
+
 export async function login() {
   try {
-    // let redirectScheme = makeRedirectUri();
+    // Step 1: Generate redirect URI based on app scheme
+    const redirectUri = AuthSession.makeRedirectUri({
+      scheme: "jawaddelivery", // must match `expo.scheme` in app.json or app.config.js
+      preferLocalhost: false, // should be false in production
+    });
+console.log(redirectUri);
 
-    // // HACK: localhost is a hack to get the redirection possible
-    // if (!redirectScheme.includes('localhost')) {
-    //   redirectScheme = `${redirectScheme}://localhost`;
-    // }
-    // console.log(redirectScheme)
+    const encodedRedirectUri = encodeURIComponent(redirectUri);
+    console.log('--------------------------------------------------------------------------');
+    console.log(encodedRedirectUri);
+    
+    
+    // Step 2: Create OAuth2 token URL from Appwrite
+    const loginUrl = await account.createOAuth2Token(
+      OAuthProvider.Google,
+      redirectUri,
+      redirectUri
+    );
 
-    const deepLink = new URL(makeRedirectUri({preferLocalhost: true}));
-// if (!deepLink.hostname) {
-//     deepLink.hostname = 'localhost';
-// }
-const scheme = `${deepLink.protocol}//`; // e.g. 'exp://' or 'playground://'
-console.log(scheme);
-console.log('----------------------------------------------------------------------------------------------------------------');
+    if (!loginUrl) throw new Error("Appwrite: Failed to get OAuth URL");
 
+    // Step 3: Start the browser auth session
+    const result = await WebBrowser.openAuthSessionAsync(loginUrl.toString(), redirectUri);
 
-const loginUrl = await account.createOAuth2Token(
-    OAuthProvider.Google,
-    `${deepLink}`,
-    `${deepLink}`,
-);
+    if (result.type !== "success") throw new Error("OAuth login cancelled");
 
-console.log(loginUrl);
+    // Step 4: Extract `secret` and `userId` from redirect URL
+    const url = new URL(result.url);
+    const secret = url.searchParams.get("secret");
+    const userId = url.searchParams.get("userId");
 
+    if (!secret || !userId) throw new Error("Invalid redirect parameters");
 
-if (!loginUrl) throw new Error("Create OAuth2 token failed");
-
-const result = await WebBrowser.openAuthSessionAsync(`${loginUrl}`, scheme);
-
-if (result.type !== "success")
-  throw new Error("Create OAuth2 token failed");
-// Extract credentials from OAuth redirect URL
-const url = new URL(result.url);
-const secret = url.searchParams.get('secret');
-const userId = url.searchParams.get('userId');
-
-if (!secret || !userId) throw new Error("Create OAuth2 token failed");
-// Create session with OAuth credentials
-// await account.createSession(userId!, secret!);
-   
-
-
-    // const browserResult = await openAuthSessionAsync(
-    //   response.href,
-    //   redirectScheme
-    // );
-
-    // const url = new URL(browserResult.url);
-    // const secret = url.searchParams.get("secret")?.toString();
-    // const userId = url.searchParams.get("userId")?.toString();
-
+    // Step 5: Create Appwrite session using secret
     const session = await account.createSession(userId, secret);
-    if (!session) throw new Error("Failed to create session");
-    
-    return {succes : true}
-    
+    if (!session) throw new Error("Appwrite: Failed to create session");
+
+    return { success: true };
   } catch (error) {
-    console.log(error)
-    return {succes : false};
+    console.error("[Login Error]", error);
+    return { success: false, error: (error as Error).message };
   }
 }
 export async function logoutCurrentUser() {
