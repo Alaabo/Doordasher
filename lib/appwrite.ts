@@ -8,7 +8,7 @@ import { Businesses, DBUser, ProductType, RequestType, Transaction } from "@/typ
 
 import { makeRedirectUri } from 'expo-auth-session'
 import { LocationProps } from "@/app/(root)/activity";
-
+import Constants from 'expo-constants';
 
 
 
@@ -25,7 +25,7 @@ export const client = new Client()
 client
         .setEndpoint(config.endpoint!)
         .setProject(config.projectd!)
-        .setPlatform('com.alaabo.doordasher')
+      .setPlatform(Constants.expoConfig?.android?.package!)
 
         
 
@@ -41,7 +41,7 @@ export async function login() {
 
     // HACK: localhost is a hack to get the redirection possible
     if (!redirectScheme.includes('localhost')) {
-      redirectScheme = `${redirectScheme}localhost`;
+      redirectScheme = `${redirectScheme}://localhost`;
     }
     console.log(redirectScheme)
    
